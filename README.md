@@ -628,7 +628,7 @@ client could otherwise choose which school's records it was answered about.
 npm test
 ```
 
-802 tests, no test dependencies — `node --test` over the built output, like the
+807 tests, no test dependencies — `node --test` over the built output, like the
 other uuidna packages. Every guard is mutation-checked: breaking it fails a test.
 
 The README is checked against the code, and the two kinds of claim it makes are

@@ -92,3 +92,4 @@ export const schoolLocalization = (defaultLocale: string = DEFAULT_LOCALE) => ({
 
 /** The locale tables this folder holds, reachable with it. */
 export * from './labels.js'
+export * from './injection.js'
