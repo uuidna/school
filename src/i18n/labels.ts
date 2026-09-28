@@ -30,3 +30,24 @@ export const GENERIC_LABELS: Record<LocaleCode, readonly string[]> = {
 
 /** Format names, which are nobody's language and name no document either. */
 export const FORMAT_LABELS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'] as const
+
+/**
+ * How a year is written when it is a label rather than a sentence, per ray.
+ *
+ * „2026 година" and „2026 г." are a heading; „2026" alone is too. The rule
+ * that promotes such a line to a heading was written with the Bulgarian
+ * suffixes in the pattern, so it would have left every other school's year
+ * labels as body text — visible only as a page that looks slightly wrong.
+ *
+ * Empty for rays that write the bare number, which is a real answer and not a
+ * gap: English says „2026", not „2026 year".
+ */
+export const YEAR_SUFFIXES: Record<LocaleCode, readonly string[]> = {
+  bg: ['година', 'г.', 'г'],
+  de: ['Jahr'],
+  en: [],
+  es: ['año'],
+  fr: ['année'],
+  ru: ['год', 'г.', 'г'],
+  zh: ['年'],
+}
