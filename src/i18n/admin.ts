@@ -23,17 +23,22 @@ export type AdminKey =
   | 'auditReason'
   | 'calendarAllDay'
   | 'calendarSource'
-  | 'classRosters'
   | 'catalogueYear'
   | 'chainHash'
   | 'chainPrev'
   | 'chainSeq'
   | 'checkpointLength'
   | 'checkpointRoot'
+  | 'classRosters'
   | 'contentHash'
   | 'criteriaData'
   | 'documentsFolder'
   | 'drawClass'
+  | 'groupAdministration'
+  | 'groupContent'
+  | 'groupDraws'
+  | 'groupSchool'
+  | 'groupSystem'
   | 'jurisdictionCode'
   | 'legalBasis'
   | 'microsoftGroup'
@@ -51,6 +56,51 @@ export type AdminKey =
   | 'writableDirectory'
 
 const TABLE: Record<AdminKey, Record<LocaleCode, string>> = {
+  groupAdministration: {
+    bg: 'Администрация',
+    de: 'Verwaltung',
+    en: 'Administration',
+    es: 'Administración',
+    fr: 'Gestion',
+    ru: 'Администрация',
+    zh: '管理',
+  },
+  groupContent: {
+    bg: 'Съдържание',
+    de: 'Inhalte',
+    en: 'Content',
+    es: 'Contenido',
+    fr: 'Contenu',
+    ru: 'Содержание',
+    zh: '内容',
+  },
+  groupDraws: {
+    bg: 'Жребий',
+    de: 'Auslosung',
+    en: 'Draws',
+    es: 'Sorteos',
+    fr: 'Tirages',
+    ru: 'Жеребьёвка',
+    zh: '抽签',
+  },
+  groupSchool: {
+    bg: 'Училище',
+    de: 'Schule',
+    en: 'School',
+    es: 'Escuela',
+    fr: 'École',
+    ru: 'Школа',
+    zh: '学校',
+  },
+  groupSystem: {
+    bg: 'Система',
+    de: 'Systemdaten',
+    en: 'System',
+    es: 'Sistema',
+    fr: 'Système',
+    ru: 'Система',
+    zh: '系统',
+  },
   actCitation: {
     bg: 'Актът, както го цитира администрацията.',
     de: 'Der Rechtsakt, wie die Verwaltung ihn zitiert.',

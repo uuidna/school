@@ -4,6 +4,7 @@ import { join, relative, resolve } from 'node:path'
 import { test } from 'node:test'
 
 import { LOCALES } from './index.js'
+import { SIDEBAR_GROUPS } from '../payload/groups.js'
 import { ADMIN_KEYS, describe } from './admin.js'
 
 // A MISSING RAY RENDERS AN EMPTY HINT at the moment somebody needs it, beside
@@ -57,7 +58,19 @@ test('the table is actually used, not merely defined', () => {
     .map((file) => file.text)
     .join('\n')
 
-  const used = ADMIN_KEYS.filter((key) => all.includes(`describe('${key}')`))
+  /*
+   * A key is used when something calls describe() with it — literally, or
+   * through a key-builder that this test can evaluate.
+   *
+   * The sidebar headings are the second kind: five groups crossed with seven
+   * rays, and the key is computed from the group name rather than written out
+   * five times. A guard that only recognises a literal would have forced the
+   * list back, which is the opposite of what the table is for.
+   */
+  const computed = SIDEBAR_GROUPS.map((group) => `group${group[0]!.toUpperCase()}${group.slice(1)}`)
+  const reaches = (key: string) => all.includes(`describe('${key}')`) || computed.includes(key)
+
+  const used = ADMIN_KEYS.filter((key) => reaches(key))
   const unused = ADMIN_KEYS.filter((key) => !used.includes(key))
 
   assert.ok(used.length > 0, 'nothing uses the table')
