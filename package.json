@@ -1,0 +1,92 @@
+{
+  "name": "@uuidna/school",
+  "version": "0.1.0",
+  "description": "A public MCP school: statutory compliance, provably fair selection and role-based access for any school, on Payload",
+  "keywords": [
+    "school",
+    "mcp",
+    "payload",
+    "compliance",
+    "gdpr",
+    "education",
+    "uuidna"
+  ],
+  "license": "CC-BY-NC-ND-4.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/index.d.ts",
+      "default": "./dist/mcp/index.js"
+    },
+    "./packs": {
+      "types": "./dist/packs/index.d.ts",
+      "default": "./dist/packs/index.js"
+    },
+    "./fair": {
+      "types": "./dist/fair/index.d.ts",
+      "default": "./dist/fair/index.js"
+    },
+    "./deploy": {
+      "types": "./dist/deploy/index.d.ts",
+      "default": "./dist/deploy/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run verify && npm run stamp",
+    "test": "npm run docs:sync && npm run build && npm run prune && npm run stamp && node --test --test-reporter=./scripts/test-receipt.mjs --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=stdout \"dist/**/*.test.js\"",
+    "school:provision": "npm run build && node dist/provision.js",
+    "docs:sync": "node scripts/sync-readme.mjs",
+    "verify": "node scripts/verify.mjs",
+    "mutate": "node scripts/mutate.mjs",
+    "prune": "node scripts/prune-dist.mjs",
+    "stamp": "node scripts/stamp-identity.mjs",
+    "proof": "node scripts/proof.mjs",
+    "ci": "npm run verify && npm test && npm run proof",
+    "verify:release": "node scripts/verify-release.mjs",
+    "test:rollcall": "npm run docs:sync && npm run build && npm run prune && npm run stamp && node --test --test-reporter=spec --test-reporter-destination=stdout \"dist/**/*.test.js\""
+  },
+  "peerDependencies": {
+    "@payloadcms/richtext-lexical": ">=3",
+    "payload": ">=3 <3.90.0 || >=4.0.0-canary.0"
+  },
+  "devDependencies": {
+    "@payloadcms/richtext-lexical": "3.90.1",
+    "payload": "4.0.0-canary.35",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "school-provision": "./dist/provision.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uuidna/school.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uuidna/school/issues"
+  },
+  "author": {
+    "name": "Tsvetan Rouschev",
+    "email": "ceccec@psg.bg",
+    "url": "https://orcid.org/0009-0000-7312-9778"
+  }
+}

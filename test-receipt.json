@@ -1,0 +1,10 @@
+{
+  "kind": "test-receipt",
+  "standard": "the counts this suite actually ran, committed. A green run of zero tests is indistinguishable from a green run of six hundred unless the number is written down — and this suite has shipped green while matching nothing. `npm run proof` refuses a receipt that moved without somebody meaning it to.",
+  "tests": 770,
+  "pass": 770,
+  "fail": 0,
+  "skip": 0,
+  "todo": 0,
+  "files": 69
+}

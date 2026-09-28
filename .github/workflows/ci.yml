@@ -1,0 +1,64 @@
+name: ci
+
+# THE GUARDS THIS PACKAGE ALREADY HAD, FINALLY RUN BY SOMETHING OTHER THAN A PERSON REMEMBERING.
+#
+# school shipped verify, test, proof and a 39-mutant battery and had no workflows at all — every guard existed
+# and none of them ran unless somebody typed the command. That is the same fault the mutation battery was written
+# to find, one level up: a check that cannot fail the build is furniture, and a check nothing invokes cannot fail
+# the build.
+#
+# Four questions, in the order that makes a failure legible:
+#   verify  — does the ARTEFACT load? A green build says the code compiles, not that what ships imports.
+#   test    — does the suite pass over the built output?
+#   proof   — is the committed receipt this run's, AND green? Drift and redness are different questions.
+#   mutate  — would the suite NOTICE a broken build? The other three cannot ask that.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact (lockfile law)
+        run: npm ci
+      # verify → test → proof, composed as one script so CI and a person run the same thing. Two lists that mean
+      # to be the same list are two lists that drift.
+      - name: Gate — the artefact loads, the suite passes, the receipt is this run's and green
+        run: npm run ci
+      # THE GUARDS, PROVED ABLE TO FAIL. A survivor is the finding: a property nothing actually checks.
+      # It runs the suite through test:rollcall, which attaches no receipt reporter — with `npm test` each mutant
+      # rewrote test-receipt.json and left the last mutant's receipt on disk, which failed the proof step above.
+      - name: Mutation — every guard proved able to fail
+        run: npm run mutate
+      # A PACKAGE THAT CANNOT BE PACKED CANNOT BE PUBLISHED, and that is worth knowing on the pull request rather
+      # than on the tag. `files` is dist, README and LICENSE; a rename that drops one of them shows up here.
+      - name: Pack — the tarball builds and carries what files[] promises
+        run: |
+          set -euo pipefail
+          npm pack --dry-run --json > pack.json
+          node -e '
+            const [p] = require("./pack.json")
+            const names = p.files.map((f) => f.path)
+            for (const want of ["README.md", "LICENSE"]) {
+              if (!names.includes(want)) { console.error(`::error::${want} is in files[] but not in the tarball`); process.exit(1) }
+            }
+            if (!names.some((n) => n.startsWith("dist/"))) { console.error("::error::the tarball carries no dist/"); process.exit(1) }
+            console.log(`tarball ${p.name}@${p.version} — ${p.entryCount} entries, ${p.unpackedSize} bytes`)
+          '

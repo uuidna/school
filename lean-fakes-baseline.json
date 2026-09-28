@@ -1,0 +1,15 @@
+{
+  "note": "Test files that stand up their own Payload fake instead of using fakePayload from payload/testing.ts. This list MAY ONLY SHRINK — a new test builds on the shared harness, or it is a deliberate debt with a reason, not a silent one.",
+  "files": [
+    "src/mcp/compliance.test.ts",
+    "src/mcp/content.test.ts",
+    "src/mcp/eu-e2e.test.ts",
+    "src/mcp/fairness.test.ts",
+    "src/mcp/financing.test.ts",
+    "src/mcp/rbac.test.ts",
+    "src/media/ingest.test.ts",
+    "src/plugins/rbac/index.test.ts",
+    "src/sources/payload.test.ts",
+    "src/sources/resolve.test.ts"
+  ]
+}

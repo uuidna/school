@@ -1,0 +1,88 @@
+name: publish
+
+# A TAG IS A CLAIM THAT SOMETHING WAS RELEASED. This is what makes the claim true, and then checks that it is.
+#
+# The order is deliberate and was learned in the sibling package: the GitHub Release is created BEFORE npm,
+# because the Release depends on nothing but the tag while npm publish depends on a trusted publisher existing on
+# npmjs.com — which has failed with E404 on the PUT and taken the whole release down with it. The archive should
+# not be collateral damage of a registry setting.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+          package-manager-cache: false
+      # OIDC trusted publishing needs npm >= 11.5.1. Node 22 ships npm 10.9 and 404s the PUT.
+      - name: npm meets the OIDC floor (>= 11.5.1)
+        run: |
+          set -euo pipefail
+          NPM=$(npm --version)
+          node -e 'const [a,b,c]=process.argv[1].split(".").map(Number);const ok=a>11||(a===11&&(b>5||(b===5&&c>=1)));if(!ok){console.error(`::error::npm ${process.argv[1]} is below the OIDC trusted-publishing floor 11.5.1`);process.exit(1)}' "$NPM"
+          echo "npm $NPM meets the OIDC floor 11.5.1"
+      - run: npm ci
+      # prepublishOnly is clean → verify → stamp, and the stamp is the sealed version: a sha256 over every shipped
+      # file's digest with its path, sorted. It is what a consuming school reads to know WHICH build it installed,
+      # so it must be written by the build that is actually being published, not by whatever ran last.
+      - name: Build and stamp the identity that ships
+        run: npm run clean && npm run verify && npm run stamp
+      - name: Tag matches package.json
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG package.json=$PKG"
+          test "$TAG" = "$PKG" || { echo "::error::tag v$TAG != package.json $PKG"; exit 1; }
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "::notice::$GITHUB_REF_NAME already exists"
+          else
+            gh release create "$GITHUB_REF_NAME" --generate-notes
+          fi
+      # --provenance validates package.json's repository URL against this workflow's repository. The field was
+      # absent until 2026-09-25, which would have refused the publish outright.
+      - name: npm publish (OIDC trusted publishing)
+        run: |
+          set +e
+          npm publish --provenance --access public 2>&1 | tee publish.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ] && grep -q "E404" publish.log; then
+            echo "::error::npm refused the PUT with 404: npmjs.com has no trusted publisher for uuidna/school + publish.yml. Set one under the package's Settings → Trusted publishers (GitHub Actions, repository uuidna/school, workflow publish.yml), then rerun this job. The GitHub Release is already made."
+          fi
+          exit $status
+      # THE RELEASE IS WHAT IS REACHABLE, NOT WHAT THE COMMANDS RETURNED. npm's PUT returns before the registry
+      # serves the version, and a provenance attestation is a separate object that can be absent from an otherwise
+      # fine publish. A host that refuses to answer is reported as unverifiable and does not fail the job.
+      - name: Verify the release is complete and live
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_ATTEMPTS: '30'
+          VERIFY_EVERY_MS: '10000'
+        run: node scripts/verify-release.mjs "${GITHUB_REF_NAME#v}"
