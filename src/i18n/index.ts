@@ -89,3 +89,6 @@ export const schoolLocalization = (defaultLocale: string = DEFAULT_LOCALE) => ({
   fallback: true,
   locales: LOCALES.map((locale) => ({ code: locale.code, label: locale.label })),
 })
+
+/** The locale tables this folder holds, reachable with it. */
+export * from './labels.js'
